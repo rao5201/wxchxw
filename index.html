@@ -6,7 +6,7 @@
     <title>武穴茶海虾王电子商务中心 - 全产业链综合服务平台</title>
     
     <!-- 安全加固：内容安全策略 (CSP) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://images.unsplash.com https://via.placeholder.com blob:; font-src https://cdnjs.cloudflare.com; connect-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://images.unsplash.com https://via.placeholder.com blob:; font-src https://cdnjs.cloudflare.com; connect-src 'self' https://*.netlify.app;">
     
     <!-- 安全加固：子资源完整性 (SRI) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQZd/XlC2kQye0x5cjvTYTd7sdkeL8Wg9RMKtwH2u0GFPsB6nRkOXPmF4dJmiDqxTvhjw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -36,11 +36,11 @@
             background: #f0f0f0; border-radius: 8px; 
             display: flex; align-items: center; justify-content: center; 
             overflow: hidden; border: 1px solid #eee; 
-            flex-shrink: 0; /* 防止被压缩 */
+            flex-shrink: 0;
         }
         .logo-img-box img { 
             width: 100%; height: 100%; 
-            object-fit: contain; /* 保持比例填充 */
+            object-fit: contain;
         }
         
         .logo-text { display: flex; flex-direction: column; justify-content: center; line-height: 1.2; }
@@ -159,7 +159,6 @@
         <div class="navbar">
             <div class="logo-area">
                 <div class="logo-img-box">
-                    <!-- 【重要】请确保 logo.jpeg 与此 html 文件在同一目录，或者修改为 images/logo.jpeg -->
                     <img src="logo.jpeg" alt="茶海虾王 Logo" onerror="this.src='https://via.placeholder.com/100x100.png?text=LOGO';">
                 </div>
                 <div class="logo-text">
@@ -283,28 +282,30 @@
         <div class="resources-split">
             <div class="form-box reveal">
                 <h3><i class="fas fa-edit"></i> 采购/投资意向登记</h3>
+                
+                <!-- ✅ 修正后的唯一表单：添加了 name 属性，移除了冲突代码 -->
                 <form id="secureForm" onsubmit="handleSecureSubmit(event)">
                     <div class="form-group">
                         <label>需求类型</label>
-                        <select required>
+                        <select name="type" required>
                             <option value="">请选择</option>
-                            <option>大宗农产品采购</option>
-                            <option>新能源项目投资</option>
-                            <option>企业管理咨询</option>
-                            <option>AI 技术合作</option>
+                            <option value="wholesale">大宗农产品采购</option>
+                            <option value="investment">新能源项目投资</option>
+                            <option value="consulting">企业管理咨询</option>
+                            <option value="ai">AI 技术合作</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>联系人姓名</label>
-                        <input type="text" id="userName" placeholder="请输入您的姓名" required pattern="[^\s<>]+">
+                        <input type="text" name="name" id="userName" placeholder="请输入您的姓名" required pattern="[^\s<>]+">
                     </div>
                     <div class="form-group">
                         <label>联系电话</label>
-                        <input type="tel" id="userPhone" placeholder="请输入手机号码" required pattern="[0-9]{11}">
+                        <input type="tel" name="phone" id="userPhone" placeholder="请输入手机号码" required pattern="[0-9]{11}">
                     </div>
                     <div class="form-group">
                         <label>详细需求描述</label>
-                        <textarea id="userMsg" placeholder="请简述您的需求..." required></textarea>
+                        <textarea name="message" id="userMsg" placeholder="请简述您的需求..." required></textarea>
                     </div>
                     <div class="form-group captcha-group">
                         <div style="flex:1">
@@ -319,46 +320,7 @@
                     <p style="font-size: 0.75rem; color: #999; margin-top: 10px; text-align: center;">
                         <i class="fas fa-lock"></i> 您的信息将通过 HTTPS 加密传输并严格保密
                     </p>
-           <!-- ✅ 修正后的表单部分 -->
-<form id="secureForm" onsubmit="handleSecureSubmit(event)">
-    <div class="form-group">
-        <label>需求类型</label>
-        <select name="type" required> <!-- 添加 name 属性以便获取数据 -->
-            <option value="">请选择</option>
-            <option value="wholesale">大宗农产品采购</option>
-            <option value="investment">新能源项目投资</option>
-            <option value="consulting">企业管理咨询</option>
-            <option value="ai">AI 技术合作</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>联系人姓名</label>
-        <input type="text" name="name" id="userName" placeholder="请输入您的姓名" required pattern="[^\s<>]+">
-    </div>
-    <div class="form-group">
-        <label>联系电话</label>
-        <input type="tel" name="phone" id="userPhone" placeholder="请输入手机号码" required pattern="[0-9]{11}">
-    </div>
-    <div class="form-group">
-        <label>详细需求描述</label>
-        <textarea name="message" id="userMsg" placeholder="请简述您的需求..." required></textarea>
-    </div>
-    
-    <!-- 验证码部分保持不变 -->
-    <div class="form-group captcha-group">
-        <div style="flex:1">
-            <label>验证码</label>
-            <input type="text" id="captchaInput" placeholder="输入右侧字符" required style="width:100%">
-        </div>
-        <div class="captcha-img" id="captchaImg" onclick="refreshCaptcha()" title="点击刷新">ABCD</div>
-    </div>
-    
-    <button type="submit" class="btn-submit" id="submitBtn">提交需求</button>
-    <div id="formFeedback" class="form-feedback"></div>
-    <p style="font-size: 0.75rem; color: #999; margin-top: 10px; text-align: center;">
-        <i class="fas fa-lock"></i> 您的信息将通过 HTTPS 加密传输并严格保密
-    </p>
-</form> <!-- ✅ 只在这里闭合一次 -->
+                </form>
             </div>
 
             <div class="links-box reveal">
@@ -412,7 +374,6 @@
             <div class="footer-col">
                 <h4>品牌标识</h4>
                 <div class="footer-logo-box">
-                    <!-- 页脚 Logo -->
                     <img src="logo.jpeg" alt="茶海虾王 Brand Logo" onerror="this.src='https://via.placeholder.com/200x80.png?text=BRAND+LOGO';">
                 </div>
             </div>
@@ -428,12 +389,7 @@
     </div>
 
     <script>
-        function sanitizeInput(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
+        // 验证码生成逻辑
         let currentCaptcha = '';
         function refreshCaptcha() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -446,40 +402,66 @@
         }
         refreshCaptcha();
 
-        function handleSecureSubmit(e) {
+        // ✅ 核心提交逻辑：对接 Netlify 云函数
+        async function handleSecureSubmit(e) {
             e.preventDefault();
+            
             const btn = document.getElementById('submitBtn');
             const feedback = document.getElementById('formFeedback');
             const captchaInput = document.getElementById('captchaInput').value.toUpperCase();
             
+            // 1. 验证验证码
             if (captchaInput !== currentCaptcha) {
                 feedback.className = 'form-feedback error';
                 feedback.textContent = '验证码错误，请重新输入';
+                feedback.style.display = 'block';
                 refreshCaptcha();
                 document.getElementById('captchaInput').value = '';
                 return;
             }
 
-            const name = sanitizeInput(document.getElementById('userName').value);
-            const phone = sanitizeInput(document.getElementById('userPhone').value);
-            const msg = sanitizeInput(document.getElementById('userMsg').value);
+            // 2. 获取表单数据 (通过 name 属性自动获取)
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
 
+            // 3. UI 状态更新
             btn.disabled = true;
-            btn.textContent = '提交中...';
+            btn.textContent = '正在存入数据库...';
             feedback.style.display = 'none';
 
-            setTimeout(() => {
-                console.log('Secure Data Submitted:', { name, phone, msg });
+            try {
+                // 4. 发送数据到 Netlify 云函数
+                const response = await fetch('/.netlify/functions/save-to-db', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    feedback.className = 'form-feedback success';
+                    feedback.textContent = '✅ 提交成功！数据已安全入库，我们将尽快联系您。';
+                    feedback.style.display = 'block';
+                    e.target.reset(); // 清空表单
+                    refreshCaptcha();
+                } else {
+                    throw new Error(result.message || '服务器响应错误');
+                }
+            } catch (error) {
+                console.error('Submission Error:', error);
+                feedback.className = 'form-feedback error';
+                feedback.textContent = '❌ 提交失败：' + error.message + '\n建议直接拨打电话：199-2005-5453';
+                feedback.style.display = 'block';
+            } finally {
                 btn.disabled = false;
                 btn.textContent = '提交需求';
-                feedback.className = 'form-feedback success';
-                feedback.textContent = '提交成功！我们的专员将尽快与您联系。';
-                document.getElementById('secureForm').reset();
-                refreshCaptcha();
+                // 5 秒后隐藏提示
                 setTimeout(() => { feedback.style.display = 'none'; }, 5000);
-            }, 1500);
+            }
         }
 
+        // 滚动动画逻辑
         let ticking = false;
         function reveal() {
             const reveals = document.querySelectorAll(".reveal");
@@ -502,6 +484,7 @@
         window.addEventListener("scroll", onScroll);
         reveal();
 
+        // 移动端菜单逻辑
         const menuToggle = document.getElementById('menuToggle');
         const navLinks = document.getElementById('navLinks');
         const overlay = document.getElementById('overlay');
@@ -528,6 +511,7 @@
             });
         });
 
+        // 导航栏高亮逻辑
         const sections = document.querySelectorAll('section');
         const navLi = document.querySelectorAll('.nav-links a');
         window.addEventListener('scroll', () => {
@@ -542,69 +526,5 @@
             });
         });
     </script>
-
-<!-- ✅ 新增代码开始：对接后端数据库逻辑 -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 自动查找页面上所有的 form 标签，或者指定 name="contact-form" 的表单
-    const forms = document.querySelectorAll('form'); 
-    
-    forms.forEach(form => {
-        // 如果表单有 data-netlify 属性，我们拦截它改为发送给云函数
-        if (form.hasAttribute('data-netlify') || form.querySelector('input[type="text"], input[type="tel"]')) {
-            
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault(); // 阻止默认跳转
-
-                const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('input[type="submit"]');
-                const originalBtnText = submitBtn ? submitBtn.innerText : '提交';
-                
-                // 1. 获取所有表单数据
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData.entries());
-
-                // 2. UI 反馈：按钮变灰
-                if(submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerText = '正在存入数据库...';
-                }
-
-                try {
-                    // 3. 发送数据到 Netlify 云函数 (后端)
-                    // 路径固定为 /.netlify/functions/save-to-db
-                    const response = await fetch('/.netlify/functions/save-to-db', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok && result.success) {
-                        alert('✅ 成功！数据已安全存入数据库。\n我们会尽快联系您！');
-                        form.reset(); // 清空表单
-                    } else {
-                        throw new Error(result.message || '数据库写入失败');
-                    }
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('❌ 提交失败：' + error.message + '\n建议直接拨打电话联系我们。');
-                } finally {
-                    // 恢复按钮
-                    if(submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = originalBtnText;
-                    }
-                }
-            });
-        }
-    });
-});
-</script>
-<!-- ✅ 新增代码结束 -->
-
 </body>
-</body>
-
 </html>
