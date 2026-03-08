@@ -319,7 +319,8 @@
                     <p style="font-size: 0.75rem; color: #999; margin-top: 10px; text-align: center;">
                         <i class="fas fa-lock"></i> 您的信息将通过 HTTPS 加密传输并严格保密
                     </p>
-                </form>
+                </form>data-netlify="true"
+            </form>
             </div>
 
             <div class="links-box reveal">
@@ -374,7 +375,6 @@
                 <h4>品牌标识</h4>
                 <div class="footer-logo-box">
                     <!-- 页脚 Logo -->
-                    <!-- 【重要】请确保 logo.jpeg 与此 html 文件在同一目录，或者修改为 images/logo.jpeg -->
                     <img src="logo.jpeg" alt="茶海虾王 Brand Logo" onerror="this.src='https://via.placeholder.com/200x80.png?text=BRAND+LOGO';">
                 </div>
             </div>
@@ -504,6 +504,68 @@
             });
         });
     </script>
+
+<!-- ✅ 新增代码开始：对接后端数据库逻辑 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 自动查找页面上所有的 form 标签，或者指定 name="contact-form" 的表单
+    const forms = document.querySelectorAll('form'); 
+    
+    forms.forEach(form => {
+        // 如果表单有 data-netlify 属性，我们拦截它改为发送给云函数
+        if (form.hasAttribute('data-netlify') || form.querySelector('input[type="text"], input[type="tel"]')) {
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault(); // 阻止默认跳转
+
+                const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('input[type="submit"]');
+                const originalBtnText = submitBtn ? submitBtn.innerText : '提交';
+                
+                // 1. 获取所有表单数据
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // 2. UI 反馈：按钮变灰
+                if(submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = '正在存入数据库...';
+                }
+
+                try {
+                    // 3. 发送数据到 Netlify 云函数 (后端)
+                    // 路径固定为 /.netlify/functions/save-to-db
+                    const response = await fetch('/.netlify/functions/save-to-db', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        alert('✅ 成功！数据已安全存入数据库。\n我们会尽快联系您！');
+                        form.reset(); // 清空表单
+                    } else {
+                        throw new Error(result.message || '数据库写入失败');
+                    }
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('❌ 提交失败：' + error.message + '\n建议直接拨打电话联系我们。');
+                } finally {
+                    // 恢复按钮
+                    if(submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = originalBtnText;
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
+<!-- ✅ 新增代码结束 -->
+
+</body>
 </body>
 </html>
-

@@ -1,0 +1,8 @@
+{
+  "name": "my-website",
+  "name": "my-site",
+  "version": "1.0.0",
+  "dependencies": {
+    "mysql2": "^3.6.0"
+  }
+}
