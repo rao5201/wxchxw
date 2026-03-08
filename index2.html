@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武穴茶海虾王电子商务中心 - 全产业链综合服务平台</title>
+    
+    <!-- 安全加固：内容安全策略 (CSP) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://images.unsplash.com https://via.placeholder.com blob:; font-src https://cdnjs.cloudflare.com; connect-src 'self';">
+    
+    <!-- 安全加固：子资源完整性 (SRI) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQZd/XlC2kQye0x5cjvTYTd7sdkeL8Wg9RMKtwH2u0GFPsB6nRkOXPmF4dJmiDqxTvhjw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        :root {
+            --primary-green: #2E7D32; --primary-gold: #FFD700; --primary-red: #C62828;
+            --ai-blue: #0288D1; --ai-purple: #7B1FA2; --energy-orange: #F57C00;
+            --service-purple: #6A1B9A; --text-main: #333; --text-light: #666;
+            --bg-light: #f4f7f6; --white: #ffffff; --shadow: 0 5px 15px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; line-height: 1.6; color: var(--text-main); background: var(--bg-light); padding-bottom: 60px; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; transition: var(--transition); }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; }
+        
+        /* 导航栏 */
+        header { background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        .navbar { max-width: 1200px; margin: 0 auto; padding: 0 20px; height: 80px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        
+        /* Logo 容器样式优化 */
+        .logo-img-box { 
+            width: 60px; height: 60px; 
+            background: #f0f0f0; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; 
+            overflow: hidden; border: 1px solid #eee; 
+            flex-shrink: 0; /* 防止被压缩 */
+        }
+        .logo-img-box img { 
+            width: 100%; height: 100%; 
+            object-fit: contain; /* 保持比例填充 */
+        }
+        
+        .logo-text { display: flex; flex-direction: column; justify-content: center; line-height: 1.2; }
+        .logo-main { font-size: 1.4rem; font-weight: 800; color: var(--primary-red); letter-spacing: 1px; }
+        .logo-sub { font-size: 0.75rem; font-weight: 600; background: linear-gradient(to right, var(--primary-green), var(--primary-gold)); -webkit-background-clip: text; color: transparent; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { font-weight: 500; font-size: 0.95rem; color: var(--text-main); position: relative; }
+        .nav-links a:hover, .nav-links a.active { color: var(--primary-green); }
+        .nav-links a.ai-link { color: var(--ai-blue); font-weight: 700; }
+        .menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); z-index: 1001; }
+        
+        /* Hero */
+        .hero { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1600&q=80'); background-size: cover; background-position: center; height: 500px; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--white); padding: 20px; }
+        .hero-content h1 { font-size: 3rem; margin-bottom: 20px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .hero-content p { font-size: 1.2rem; max-width: 800px; margin: 0 auto 30px; opacity: 0.9; }
+        .hero-tags { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .tag { background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 15px; font-size: 0.9rem; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); }
+
+        /* 通用 */
+        .container { max-width: 1200px; margin: 0 auto; padding: 60px 20px; }
+        .section-header { text-align: center; margin-bottom: 50px; }
+        .section-title { font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 15px; }
+        .title-line { width: 60px; height: 4px; background: linear-gradient(to right, var(--primary-green), var(--primary-red)); margin: 0 auto 20px; border-radius: 2px; }
+        
+        /* 业务网格 */
+        .business-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; }
+        .biz-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: var(--transition); border-top: 4px solid transparent; display: flex; flex-direction: column; }
+        .biz-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
+        .biz-card.agri { border-top-color: var(--primary-green); }
+        .biz-card.energy { border-top-color: var(--energy-orange); }
+        .biz-card.service { border-top-color: var(--service-purple); }
+        .biz-card.tech { border-top-color: var(--ai-blue); }
+        .biz-icon { height: 70px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; background: #f9f9f9; }
+        .agri .biz-icon { color: var(--primary-green); background: #e8f5e9; }
+        .energy .biz-icon { color: var(--energy-orange); background: #fff3e0; }
+        .service .biz-icon { color: var(--service-purple); background: #f3e5f5; }
+        .tech .biz-icon { color: var(--ai-blue); background: #e3f2fd; }
+        .biz-content { padding: 25px; flex-grow: 1; }
+        .biz-content h3 { font-size: 1.25rem; margin-bottom: 15px; color: var(--text-main); font-weight: 700; }
+        .biz-content li { font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; padding-left: 15px; position: relative; }
+        .biz-content li::before { content: '•'; color: inherit; position: absolute; left: 0; font-weight: bold; }
+
+        /* AI 模块 */
+        .ai-section-wrapper { margin-top: 60px; }
+        .ai-card-main { background: var(--white); border-radius: 15px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid #eee; }
+        .ai-header { background: linear-gradient(135deg, var(--ai-blue) 0%, var(--ai-purple) 100%); padding: 40px 20px; text-align: center; color: var(--white); position: relative; overflow: hidden; }
+        .ai-header h2 { font-size: 2rem; margin-bottom: 10px; font-weight: 800; }
+        .ai-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; padding: 40px; background: #fafafa; }
+        .ai-feature { background: var(--white); padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: var(--transition); }
+        .ai-feature:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .ai-icon-box { width: 60px; height: 60px; background: #e3f2fd; color: var(--ai-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 20px; }
+
+        /* 资源与表单 */
+        .resources-split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
+        .form-box, .links-box { background: var(--white); padding: 30px; border-radius: 12px; box-shadow: var(--shadow); }
+        .form-box h3, .links-box h3 { font-size: 1.3rem; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .form-box h3 { color: var(--primary-green); }
+        .links-box h3 { color: var(--ai-blue); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 0.9rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; transition: var(--transition); }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary-green); outline: none; box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1); }
+        .form-group textarea { height: 100px; resize: vertical; }
+        
+        .captcha-group { display: flex; gap: 10px; align-items: center; }
+        .captcha-img { width: 100px; height: 40px; background: #eee; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; border-radius: 4px; cursor: pointer; user-select: none; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc); background-size: 20px 20px; background-position: 0 0, 10px 10px; opacity: 0.6; }
+        
+        .btn-submit { width: 100%; padding: 14px; background: var(--primary-green); color: var(--white); border: none; border-radius: 6px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: var(--transition); position: relative; overflow: hidden; }
+        .btn-submit:hover { background: #1b5e20; transform: translateY(-2px); }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        
+        .form-feedback { margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 0.9rem; display: none; }
+        .form-feedback.success { background: #e8f5e9; color: #2e7d32; display: block; }
+        .form-feedback.error { background: #ffebee; color: #c62828; display: block; }
+
+        .link-list a { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #f0f0f0; color: var(--text-main); transition: var(--transition); }
+        .link-list a:last-child { border-bottom: none; }
+        .link-list a:hover { background: #f9fbf9; padding-left: 20px; color: var(--primary-green); }
+        .link-list i { margin-right: 15px; color: var(--ai-blue); font-size: 1.1rem; width: 20px; text-align: center; }
+        .link-info strong { display: block; font-size: 0.95rem; }
+        .link-info span { font-size: 0.8rem; color: #999; display: block; margin-top: 2px; }
+
+        /* 页脚 */
+        footer { background: #2c3e50; color: #ecf0f1; padding: 60px 20px 20px; margin-top: 80px; }
+        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
+        .footer-col h4 { color: var(--white); margin-bottom: 20px; font-size: 1.2rem; border-left: 3px solid var(--primary-green); padding-left: 10px; }
+        .footer-logo-box { width: 100%; max-width: 200px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(255,255,255,0.3); color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-bottom: 15px; overflow: hidden; }
+        .footer-logo-box img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        .footer-bottom { text-align: center; border-top: 1px solid #34495e; padding-top: 20px; color: #7f8c8d; font-size: 0.85rem; }
+
+        /* 底部广告条 */
+        .sticky-ad-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: linear-gradient(90deg, #FFD700, #FFA000); color: #333; padding: 10px 0; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); text-align: center; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 15px; }
+        .sticky-ad-bar a { background: #333; color: #FFD700; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; }
+        
+        /* 动画与响应式 */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: absolute; top: 80px; left: 0; width: 100%; background: white; flex-direction: column; padding: 20px; box-shadow: 0 10px 10px rgba(0,0,0,0.1); }
+            .nav-links.active { display: flex; }
+            .menu-toggle { display: block; }
+            .hero-content h1 { font-size: 2rem; }
+            .resources-split { grid-template-columns: 1fr; }
+            .logo-text { display: none; }
+            .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+            .overlay.active { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 移动端遮罩 -->
+    <div class="overlay" id="overlay"></div>
+
+    <header>
+        <div class="navbar">
+            <div class="logo-area">
+                <div class="logo-img-box">
+                    <!-- 【重要】请确保 logo.jpeg 与此 html 文件在同一目录，或者修改为 images/logo.jpeg -->
+                    <img src="logo.jpeg" alt="茶海虾王 Logo" onerror="this.src='https://via.placeholder.com/100x100.png?text=LOGO';">
+                </div>
+                <div class="logo-text">
+                    <div class="logo-main">茶海虾王</div>
+                    <div class="logo-sub">武穴茶海虾王电子商务中心</div>
+                </div>
+            </div>
+            <nav class="nav-links" id="navLinks">
+                <a href="#home" class="active">首页</a>
+                <a href="#business">核心业务</a>
+                <a href="#ai-service" class="ai-link">AI 智能</a>
+                <a href="#resources">资源对接</a>
+                <a href="#contact">联系我们</a>
+            </nav>
+            <div class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </header>
+
+    <section id="home" class="hero">
+        <div class="hero-content reveal">
+            <h1>全产业链综合服务平台</h1>
+            <p>农产品产销 · 企业管理 · 财税融资 · 供应链服务<br>融合新媒体 · 新能源 · 新技术 · AI 综合服务</p>
+            <div class="hero-tags">
+                <span class="tag"><i class="fas fa-leaf"></i> 生态农业</span>
+                <span class="tag"><i class="fas fa-bolt"></i> 新能源</span>
+                <span class="tag"><i class="fas fa-brain"></i> AI 智能</span>
+                <span class="tag"><i class="fas fa-chart-line"></i> 资本运作</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="business" class="container">
+        <div class="section-header reveal">
+            <h2 class="section-title">四大核心业务板块</h2>
+            <div class="title-line"></div>
+        </div>
+        <div class="business-grid">
+            <div class="biz-card agri reveal">
+                <div class="biz-icon"><i class="fas fa-fish"></i></div>
+                <div class="biz-content">
+                    <h3>农产品产销</h3>
+                    <ul>
+                        <li><strong>小龙虾系列：</strong>武穴鲜活小龙虾、冷冻虾仁</li>
+                        <li><strong>品牌茶叶：</strong>“茶海虾王”大红袍</li>
+                        <li><strong>农资研发：</strong>生物有机肥、土壤改良</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="biz-card energy reveal">
+                <div class="biz-icon"><i class="fas fa-charging-station"></i></div>
+                <div class="biz-content">
+                    <h3>新能源与新材料</h3>
+                    <ul>
+                        <li><strong>设施运营：</strong>充电桩/换电设施</li>
+                        <li><strong>汽车销售：</strong>新能源汽车整车销售</li>
+                        <li><strong>材料销售：</strong>工业合成材料</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="biz-card service reveal">
+                <div class="biz-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                <div class="biz-content">
+                    <h3>专业服务与资本</h3>
+                    <ul>
+                        <li><strong>企业管理：</strong>战略规划、税务筹划</li>
+                        <li><strong>投融资服务：</strong>品牌塑造、BP 优化</li>
+                        <li><strong>工程与供应链：</strong>全过程工程管理</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="biz-card tech reveal">
+                <div class="biz-icon"><i class="fas fa-robot"></i></div>
+                <div class="biz-content">
+                    <h3>AI 与新技术</h3>
+                    <ul>
+                        <li><strong>软件开发：</strong>定制化软件、新媒体</li>
+                        <li><strong>智慧农业：</strong>IOT 监测、大数据</li>
+                        <li><strong>工具矩阵：</strong>OpenClaw、IP 查询</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="ai-service" class="ai-section-wrapper reveal">
+            <div class="ai-card-main">
+                <div class="ai-header">
+                    <h2><i class="fas fa-brain"></i> AI 智能服务体系</h2>
+                    <p>数据驱动决策 · 智慧赋能农业</p>
+                </div>
+                <div class="ai-grid">
+                    <div class="ai-feature">
+                        <div class="ai-icon-box"><i class="fas fa-satellite-dish"></i></div>
+                        <h3>智慧监测</h3>
+                        <p>IoT 传感器实时监测土壤与气候</p>
+                    </div>
+                    <div class="ai-feature">
+                        <div class="ai-icon-box"><i class="fas fa-chart-bar"></i></div>
+                        <h3>市场决策</h3>
+                        <p>大数据预测价格趋势</p>
+                    </div>
+                    <div class="ai-feature">
+                        <div class="ai-icon-box"><i class="fas fa-headset"></i></div>
+                        <h3>智能客服</h3>
+                        <p>24/7 在线 AI 助手</p>
+                    </div>
+                    <div class="ai-feature">
+                        <div class="ai-icon-box"><i class="fas fa-truck-fast"></i></div>
+                        <h3>物流优化</h3>
+                        <p>智能路径规划与库存管理</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="resources" class="container">
+        <div class="section-header reveal">
+            <h2 class="section-title">资源对接与服务</h2>
+            <div class="title-line"></div>
+        </div>
+        <div class="resources-split">
+            <div class="form-box reveal">
+                <h3><i class="fas fa-edit"></i> 采购/投资意向登记</h3>
+                <form id="secureForm" onsubmit="handleSecureSubmit(event)">
+                    <div class="form-group">
+                        <label>需求类型</label>
+                        <select required>
+                            <option value="">请选择</option>
+                            <option>大宗农产品采购</option>
+                            <option>新能源项目投资</option>
+                            <option>企业管理咨询</option>
+                            <option>AI 技术合作</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>联系人姓名</label>
+                        <input type="text" id="userName" placeholder="请输入您的姓名" required pattern="[^\s<>]+">
+                    </div>
+                    <div class="form-group">
+                        <label>联系电话</label>
+                        <input type="tel" id="userPhone" placeholder="请输入手机号码" required pattern="[0-9]{11}">
+                    </div>
+                    <div class="form-group">
+                        <label>详细需求描述</label>
+                        <textarea id="userMsg" placeholder="请简述您的需求..." required></textarea>
+                    </div>
+                    <div class="form-group captcha-group">
+                        <div style="flex:1">
+                            <label>验证码</label>
+                            <input type="text" id="captchaInput" placeholder="输入右侧字符" required style="width:100%">
+                        </div>
+                        <div class="captcha-img" id="captchaImg" onclick="refreshCaptcha()" title="点击刷新">ABCD</div>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit" id="submitBtn">提交需求</button>
+                    <div id="formFeedback" class="form-feedback"></div>
+                    <p style="font-size: 0.75rem; color: #999; margin-top: 10px; text-align: center;">
+                        <i class="fas fa-lock"></i> 您的信息将通过 HTTPS 加密传输并严格保密
+                    </p>
+                </form>
+            </div>
+
+            <div class="links-box reveal">
+                <h3><i class="fas fa-link"></i> 行业资源与扶持</h3>
+                <div class="link-list">
+                    <a href="https://www.qjlx.com/" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-newspaper"></i>
+                        <div class="link-info"><strong>潜江龙虾网</strong><span>实时同步行业新闻、新规</span></div>
+                    </a>
+                    <a href="https://zwfw.hubei.gov.cn/" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-hand-holding-heart"></i>
+                        <div class="link-info"><strong>湖北省政务服务网</strong><span>一键申报创业补贴</span></div>
+                    </a>
+                    <a href="https://www.mofcom.gov.cn/cms_files/filemanager/policySummary/viewcore_422194155541428daa323d8d2f448e9c.html" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-car-side"></i>
+                        <div class="link-info"><strong>汽车补贴政策</strong><span>2026 年以旧换新实施细则</span></div>
+                    </a>
+                    <a href="#resources">
+                        <i class="fas fa-ad"></i>
+                        <div class="link-info"><strong>黄金广告位招商</strong><span>仅剩 10 席，流量变现合作</span></div>
+                    </a>
+                    <a href="https://openclaw-cn.netlify.app/" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-tools"></i>
+                        <div class="link-info"><strong>OpenClaw (AI 龙虾)</strong><span>AI 智能辅助工作系统平台</span></div>
+                    </a>
+                    <a href="https://share.note.youdao.com/s/2YnWHovz" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-folder-open"></i>
+                        <div class="link-info"><strong>自研软件工具合集</strong><span>QwenFlow | CHXW 量化交易 | 安全防护平台</span></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-col">
+                <h4>联系我们</h4>
+                <p><i class="fas fa-map-marker-alt"></i> 湖北省黄冈市武穴市武穴保康路 52 号 -1</p>
+                <p><i class="fas fa-envelope"></i> 请联系后台获取邮箱</p>
+                <p><i class="fas fa-id-card"></i> 92421182MA4EPBAE1R</p>
+            </div>
+            <div class="footer-col">
+                <h4>快速链接</h4>
+                <ul>
+                    <li><a href="#business">核心业务</a></li>
+                    <li><a href="#ai-service">AI 智能服务</a></li>
+                    <li><a href="#resources">创业扶持</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>品牌标识</h4>
+                <div class="footer-logo-box">
+                    <!-- 页脚 Logo -->
+                    <img src="logo.jpeg" alt="茶海虾王 Brand Logo" onerror="this.src='https://via.placeholder.com/200x80.png?text=BRAND+LOGO';">
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2021-2026 武穴茶海虾王电子商务中心 版权所有
+        </div>
+    </footer>
+
+    <div class="sticky-ad-bar">
+        <span><i class="fas fa-bullhorn"></i> 黄金广告位火热招商中 · 仅限 10 席</span>
+        <a href="#resources">立即咨询</a>
+    </div>
+
+    <script>
+        function sanitizeInput(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        let currentCaptcha = '';
+        function refreshCaptcha() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = '';
+            for (let i = 0; i < 4; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            currentCaptcha = result;
+            document.getElementById('captchaImg').textContent = result;
+        }
+        refreshCaptcha();
+
+        function handleSecureSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const feedback = document.getElementById('formFeedback');
+            const captchaInput = document.getElementById('captchaInput').value.toUpperCase();
+            
+            if (captchaInput !== currentCaptcha) {
+                feedback.className = 'form-feedback error';
+                feedback.textContent = '验证码错误，请重新输入';
+                refreshCaptcha();
+                document.getElementById('captchaInput').value = '';
+                return;
+            }
+
+            const name = sanitizeInput(document.getElementById('userName').value);
+            const phone = sanitizeInput(document.getElementById('userPhone').value);
+            const msg = sanitizeInput(document.getElementById('userMsg').value);
+
+            btn.disabled = true;
+            btn.textContent = '提交中...';
+            feedback.style.display = 'none';
+
+            setTimeout(() => {
+                console.log('Secure Data Submitted:', { name, phone, msg });
+                btn.disabled = false;
+                btn.textContent = '提交需求';
+                feedback.className = 'form-feedback success';
+                feedback.textContent = '提交成功！我们的专员将尽快与您联系。';
+                document.getElementById('secureForm').reset();
+                refreshCaptcha();
+                setTimeout(() => { feedback.style.display = 'none'; }, 5000);
+            }, 1500);
+        }
+
+        let ticking = false;
+        function reveal() {
+            const reveals = document.querySelectorAll(".reveal");
+            const windowHeight = window.innerHeight;
+            reveals.forEach(reveal => {
+                const elementTop = reveal.getBoundingClientRect().top;
+                if (elementTop < windowHeight - 100) {
+                    reveal.classList.add("active");
+                }
+            });
+            ticking = false;
+        }
+
+        function onScroll() {
+            if (!ticking) {
+                window.requestAnimationFrame(reveal);
+                ticking = true;
+            }
+        }
+        window.addEventListener("scroll", onScroll);
+        reveal();
+
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        const overlay = document.getElementById('overlay');
+        const icon = menuToggle.querySelector('i');
+
+        function toggleMenu() {
+            navLinks.classList.toggle('active');
+            overlay.classList.toggle('active');
+            if (navLinks.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        }
+
+        menuToggle.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+        
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) toggleMenu();
+            });
+        });
+
+        const sections = document.querySelectorAll('section');
+        const navLi = document.querySelectorAll('.nav-links a');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= (sectionTop - 200)) current = section.getAttribute('id');
+            });
+            navLi.forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href').includes(current)) a.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
