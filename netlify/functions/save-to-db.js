@@ -14,12 +14,21 @@ exports.handler = async (event, context) => {
     // 【重要】从环境变量读取数据库配置 (切勿硬编码在代码里!)
     // 您需要在 Netlify 后台 -> Site Settings -> Environment Variables 添加以下变量:
     // DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-    });
+    const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
+
+if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME) {
+  return {
+    statusCode: 500,
+    body: JSON.stringify({ error: 'Missing database configuration' })
+  };
+}
+
+const connection = await mysql.createConnection({
+  host: DB_HOST,
+  user: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_NAME,
+});
 
     // 执行插入操作 (假设表名为 contacts，字段为 name, phone, message, created_at)
     // 请根据您的实际数据库表结构修改下面的 SQL
@@ -41,4 +50,5 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ success: false, message: error.message })
     };
   }
+
 };
