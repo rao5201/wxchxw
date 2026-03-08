@@ -1,7 +1,22 @@
 {
   "name": "chaxia-project",
   "version": "1.0.0",
+  "description": "武穴茶海虾王电子商务中心 - 全产业链综合服务平台",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo \"No build step required\"",
+    "dev": "netlify dev",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
   "dependencies": {
-    "mysql2": "^3.6.0"
-  }
+    "mysql2": "^3.6.0",
+    "express-validator": "^7.0.1"
+  },
+  "engines": {
+    "node": ">=18.x",
+    "npm": ">=8.x"
+  },
+  "keywords": ["农产品", "AI服务", "Netlify", "MySQL", "表单提交"],
+  "author": "武穴茶海虾王电子商务中心",
+  "license": "MIT"
 }
