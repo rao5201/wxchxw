@@ -3,25 +3,45 @@
 const mysql = require('mysql2/promise');
 const { body, validationResult } = require('express-validator');
 
-// 数据校验规则（防XSS、格式错误）
+// ===================== 配置项（可通过环境变量覆盖） =====================
+const CONFIG = {
+  // 允许的数据库表名白名单（防止表名注入）
+  ALLOWED_TABLES: process.env.ALLOWED_TABLES?.split(',') || ['contacts'],
+  // 允许的跨域域名（生产环境替换为你的实际域名）
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS?.split(',') || ['https://your-domain.com', 'http://localhost:3000'],
+  // 数据库连接超时时间（毫秒）
+  DB_CONNECT_TIMEOUT: 5000,
+  // 表单字段长度限制
+  FIELD_LIMITS: {
+    name: 50,
+    message: 500
+  }
+};
+
+// ===================== 数据校验规则 =====================
 const validateForm = [
   body('name')
     .trim()
     .notEmpty().withMessage('姓名不能为空')
-    .isLength({ max: 50 }).withMessage('姓名长度不能超过50字符'),
+    .isLength({ max: CONFIG.FIELD_LIMITS.name }).withMessage(`姓名长度不能超过${CONFIG.FIELD_LIMITS.name}字符`),
   body('phone')
     .trim()
     .notEmpty().withMessage('手机号不能为空')
-    .matches(/^1[3-9]\d{9}$/).withMessage('手机号格式错误'),
+    .matches(/^1[3-9]\d{9}$/).withMessage('手机号格式错误，请输入11位有效手机号'),
   body('type')
     .trim()
     .notEmpty().withMessage('需求类型不能为空'),
   body('message')
     .trim()
-    .isLength({ max: 500 }).withMessage('留言内容不能超过500字符')
+    .isLength({ max: CONFIG.FIELD_LIMITS.message }).withMessage(`留言内容不能超过${CONFIG.FIELD_LIMITS.message}字符`)
 ];
 
-// 脱敏处理敏感数据（仅日志/返回用，存储仍加密）
+// ===================== 工具函数 =====================
+/**
+ * 脱敏处理敏感数据（仅日志/返回用）
+ * @param {Object} data - 原始表单数据
+ * @returns {Object} 脱敏后的数据
+ */
 const maskSensitiveData = (data) => {
   return {
     ...data,
@@ -29,34 +49,84 @@ const maskSensitiveData = (data) => {
   };
 };
 
+/**
+ * 获取允许的跨域域名
+ * @param {string} requestOrigin - 请求头中的origin
+ * @returns {string} 允许的origin
+ */
+const getAllowOrigin = (requestOrigin) => {
+  if (CONFIG.ALLOWED_ORIGINS.includes(requestOrigin)) {
+    return requestOrigin;
+  }
+  // 开发环境允许localhost，生产环境返回第一个合法域名
+  return requestOrigin?.includes('localhost') ? requestOrigin : CONFIG.ALLOWED_ORIGINS[0];
+};
+
+// ===================== 主处理函数 =====================
 exports.handler = async (event, context) => {
-  // 1. 仅允许POST请求
-  if (event.httpMethod !== "POST") {
-    return { 
-      statusCode: 405, 
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Access-Control-Allow-Origin': '*' 
+  // 1. 处理OPTIONS预检请求（解决跨域）
+  if (event.httpMethod === "OPTIONS") {
+    const allowOrigin = getAllowOrigin(event.headers.origin);
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': allowOrigin,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Max-Age': '86400' // 预检缓存24小时
       },
-      body: JSON.stringify({ success: false, message: "仅支持POST请求" }) 
+      body: ''
+    };
+  }
+
+  // 2. 仅允许POST请求
+  if (event.httpMethod !== "POST") {
+    const allowOrigin = getAllowOrigin(event.headers.origin);
+    return { 
+      statusCode: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': allowOrigin
+      },
+      body: JSON.stringify({ 
+        success: false, 
+        message: "仅支持POST请求" 
+      }) 
     };
   }
 
   try {
-    // 2. 解析并校验请求数据
-    const rawData = JSON.parse(event.body || '{}');
-    
-    // 模拟express-validator校验（Netlify函数无req对象，手动执行）
+    // 3. 解析请求数据
+    let rawData = {};
+    try {
+      rawData = JSON.parse(event.body || '{}');
+    } catch (parseError) {
+      const allowOrigin = getAllowOrigin(event.headers.origin);
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': allowOrigin
+        },
+        body: JSON.stringify({
+          success: false,
+          message: "请求数据格式错误，请提交合法的JSON数据"
+        })
+      };
+    }
+
+    // 4. 执行表单校验
     const validationPromises = validateForm.map(rule => rule.run({ body: rawData }));
     await Promise.all(validationPromises);
     const errors = validationResult({ body: rawData });
     
     if (!errors.isEmpty()) {
+      const allowOrigin = getAllowOrigin(event.headers.origin);
       return {
         statusCode: 400,
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Access-Control-Allow-Origin': '*' 
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': allowOrigin
         },
         body: JSON.stringify({ 
           success: false, 
@@ -66,78 +136,137 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // 3. 读取环境变量（防硬编码）
-    const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_TABLE = 'contacts' } = process.env;
-    if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME) {
+    // 5. 读取并验证环境变量
+    const {
+      DB_HOST,
+      DB_USER,
+      DB_PASSWORD,
+      DB_NAME,
+      DB_TABLE = 'contacts',
+      DB_ENCRYPT_KEY
+    } = process.env;
+
+    // 检查核心配置
+    const missingConfig = [];
+    if (!DB_HOST) missingConfig.push('DB_HOST');
+    if (!DB_USER) missingConfig.push('DB_USER');
+    if (!DB_PASSWORD) missingConfig.push('DB_PASSWORD');
+    if (!DB_NAME) missingConfig.push('DB_NAME');
+    if (!DB_ENCRYPT_KEY) missingConfig.push('DB_ENCRYPT_KEY');
+
+    if (missingConfig.length > 0) {
+      const allowOrigin = getAllowOrigin(event.headers.origin);
       return {
         statusCode: 500,
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Access-Control-Allow-Origin': '*' 
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': allowOrigin
         },
         body: JSON.stringify({ 
           success: false, 
-          error: '数据库配置缺失，请检查Netlify环境变量' 
+          error: `缺少必要的环境变量：${missingConfig.join(', ')}` 
         })
       };
     }
 
-    // 4. 创建数据库连接（带超时+重试）
-    const connection = await mysql.createConnection({
-      host: DB_HOST,
-      user: DB_USER,
-      password: DB_PASSWORD,
-      database: DB_NAME,
-      connectTimeout: 5000, // 5秒连接超时
-      charset: 'utf8mb4' // 支持emoji等特殊字符
-    });
+    // 验证表名是否在白名单中
+    if (!CONFIG.ALLOWED_TABLES.includes(DB_TABLE)) {
+      const allowOrigin = getAllowOrigin(event.headers.origin);
+      return {
+        statusCode: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': allowOrigin
+        },
+        body: JSON.stringify({ 
+          success: false, 
+          message: "非法的数据库表名" 
+        })
+      };
+    }
 
-    // 5. 执行插入（参数化查询防SQL注入）
-    const sql = `INSERT INTO ${DB_TABLE} (name, phone, type, message, created_at, ip_address) 
-                 VALUES (?, AES_ENCRYPT(?, ?), ?, ?, NOW(), ?)`;
-    // 加密密钥（需在Netlify添加环境变量 DB_ENCRYPT_KEY）
-    const encryptKey = process.env.DB_ENCRYPT_KEY || 'default_secure_key_2026';
-    // 获取客户端IP（Netlify函数特有）
-    const clientIp = event.headers['x-nf-client-connection-ip'] || 'unknown';
+    // 6. 创建数据库连接
+    let connection;
+    try {
+      connection = await mysql.createConnection({
+        host: DB_HOST,
+        user: DB_USER,
+        password: DB_PASSWORD,
+        database: DB_NAME,
+        connectTimeout: CONFIG.DB_CONNECT_TIMEOUT,
+        charset: 'utf8mb4', // 支持emoji和特殊字符
+        multipleStatements: false // 禁止多语句执行，防止注入
+      });
+    } catch (connError) {
+      console.error("数据库连接失败:", connError);
+      const allowOrigin = getAllowOrigin(event.headers.origin);
+      return {
+        statusCode: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': allowOrigin
+        },
+        body: JSON.stringify({ 
+          success: false, 
+          message: "数据库连接失败，请稍后重试" 
+        })
+      };
+    }
+
+    // 7. 执行数据插入（参数化查询防注入）
+    const sql = `
+      INSERT INTO ${DB_TABLE} 
+      (name, phone, type, message, ip_address, created_at) 
+      VALUES (?, AES_ENCRYPT(?, ?), ?, ?, ?, NOW())
+    `;
+    
+    const clientIp = event.headers['x-nf-client-connection-ip'] || 
+                     event.headers['x-forwarded-for'] || 
+                     'unknown';
+                     
     const values = [
       rawData.name.trim(),
       rawData.phone.trim(),
-      encryptKey,
+      DB_ENCRYPT_KEY,
       rawData.type.trim(),
       rawData.message.trim(),
       clientIp
     ];
 
     await connection.execute(sql, values);
-    await connection.end();
+    await connection.end(); // 关闭连接
 
-    // 6. 返回成功（脱敏数据，不泄露完整手机号）
-    console.log('数据入库成功:', maskSensitiveData(rawData));
+    // 8. 返回成功响应（脱敏数据）
+    const maskedData = maskSensitiveData(rawData);
+    console.log('表单数据入库成功:', maskedData);
+    const allowOrigin = getAllowOrigin(event.headers.origin);
+    
     return {
       statusCode: 200,
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Access-Control-Allow-Origin': '*' 
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': allowOrigin
       },
       body: JSON.stringify({ 
         success: true, 
-        message: "表单提交成功", 
-        data: maskSensitiveData(rawData) 
+        message: "表单提交成功，我们会尽快与您联系", 
+        data: maskedData 
       })
     };
 
   } catch (error) {
-    // 7. 错误处理（隐藏敏感错误信息）
-    console.error("数据库操作失败:", error);
+    // 全局错误处理（生产环境隐藏具体错误）
+    console.error("表单处理失败:", error);
+    const allowOrigin = getAllowOrigin(event.headers.origin);
     const errorMsg = process.env.NODE_ENV === 'production' 
       ? '服务器内部错误，请稍后重试' 
       : error.message;
-    
+
     return {
       statusCode: 500,
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Access-Control-Allow-Origin': '*' 
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': allowOrigin
       },
       body: JSON.stringify({ 
         success: false, 
