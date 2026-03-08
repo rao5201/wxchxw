@@ -5,10 +5,20 @@ const { body, validationResult } = require('express-validator');
 
 // 数据校验规则（防XSS、格式错误）
 const validateForm = [
-  body('name').trim().notEmpty().withMessage('姓名不能为空').isLength({ max: 50 }).withMessage('姓名长度不能超过50字符'),
-  body('phone').trim().notEmpty().withMessage('手机号不能为空').matches(/^1[3-9]\d{9}$/).withMessage('手机号格式错误'),
-  body('type').trim().notEmpty().withMessage('需求类型不能为空'),
-  body('message').trim().isLength({ max: 500 }).withMessage('留言内容不能超过500字符')
+  body('name')
+    .trim()
+    .notEmpty().withMessage('姓名不能为空')
+    .isLength({ max: 50 }).withMessage('姓名长度不能超过50字符'),
+  body('phone')
+    .trim()
+    .notEmpty().withMessage('手机号不能为空')
+    .matches(/^1[3-9]\d{9}$/).withMessage('手机号格式错误'),
+  body('type')
+    .trim()
+    .notEmpty().withMessage('需求类型不能为空'),
+  body('message')
+    .trim()
+    .isLength({ max: 500 }).withMessage('留言内容不能超过500字符')
 ];
 
 // 脱敏处理敏感数据（仅日志/返回用，存储仍加密）
@@ -24,7 +34,10 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST") {
     return { 
       statusCode: 405, 
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Access-Control-Allow-Origin': '*' 
+      },
       body: JSON.stringify({ success: false, message: "仅支持POST请求" }) 
     };
   }
@@ -41,7 +54,10 @@ exports.handler = async (event, context) => {
     if (!errors.isEmpty()) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Access-Control-Allow-Origin': '*' 
+        },
         body: JSON.stringify({ 
           success: false, 
           message: "表单验证失败", 
@@ -55,8 +71,14 @@ exports.handler = async (event, context) => {
     if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME) {
       return {
         statusCode: 500,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ success: false, error: '数据库配置缺失，请检查Netlify环境变量' })
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Access-Control-Allow-Origin': '*' 
+        },
+        body: JSON.stringify({ 
+          success: false, 
+          error: '数据库配置缺失，请检查Netlify环境变量' 
+        })
       };
     }
 
@@ -93,7 +115,10 @@ exports.handler = async (event, context) => {
     console.log('数据入库成功:', maskSensitiveData(rawData));
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Access-Control-Allow-Origin': '*' 
+      },
       body: JSON.stringify({ 
         success: true, 
         message: "表单提交成功", 
@@ -110,7 +135,10 @@ exports.handler = async (event, context) => {
     
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Access-Control-Allow-Origin': '*' 
+      },
       body: JSON.stringify({ 
         success: false, 
         message: errorMsg 
