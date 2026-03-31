@@ -383,6 +383,171 @@ app.get('/api/config', (req, res) => {
     }
 });
 
+// 7. 创建数据备份（仅管理员）
+app.post('/api/admin/backup', authMiddleware, requirePermission('delete_data'), (req, res) => {
+    try {
+        const requests = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        const backupDir = path.join(__dirname, 'data', 'backups');
+        
+        // 确保备份目录存在
+        if (!fs.existsSync(backupDir)) {
+            fs.mkdirSync(backupDir, { recursive: true });
+        }
+        
+        // 生成备份文件名
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupFile = path.join(backupDir, `backup_${timestamp}.json`);
+        
+        // 保存备份
+        fs.writeFileSync(backupFile, JSON.stringify(requests, null, 2));
+        
+        console.log(`数据备份成功: ${backupFile}`);
+        
+        res.json({
+            success: true,
+            message: '数据备份成功',
+            data: {
+                backupFile: path.basename(backupFile),
+                timestamp: new Date().toISOString(),
+                count: requests.length
+            }
+        });
+        
+    } catch (error) {
+        console.error('创建备份失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: '创建备份失败', 
+            details: error.message 
+        });
+    }
+});
+
+// 8. 获取备份列表（仅管理员）
+app.get('/api/admin/backups', authMiddleware, requirePermission('delete_data'), (req, res) => {
+    try {
+        const backupDir = path.join(__dirname, 'data', 'backups');
+        
+        if (!fs.existsSync(backupDir)) {
+            return res.json({
+                success: true,
+                data: []
+            });
+        }
+        
+        // 读取备份文件
+        const backupFiles = fs.readdirSync(backupDir)
+            .filter(file => file.endsWith('.json'))
+            .map(file => {
+                const filePath = path.join(backupDir, file);
+                const stats = fs.statSync(filePath);
+                return {
+                    filename: file,
+                    size: stats.size,
+                    createdAt: stats.birthtime.toISOString(),
+                    path: file
+                };
+            })
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        res.json({
+            success: true,
+            data: backupFiles
+        });
+        
+    } catch (error) {
+        console.error('获取备份列表失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: '获取备份列表失败', 
+            details: error.message 
+        });
+    }
+});
+
+// 9. 恢复备份（仅管理员）
+app.post('/api/admin/restore', authMiddleware, requirePermission('delete_data'), (req, res) => {
+    try {
+        const { filename } = req.body;
+        
+        if (!filename) {
+            return res.status(400).json({ 
+                success: false, 
+                message: '请提供备份文件名' 
+            });
+        }
+        
+        const backupDir = path.join(__dirname, 'data', 'backups');
+        const backupFile = path.join(backupDir, filename);
+        
+        if (!fs.existsSync(backupFile)) {
+            return res.status(404).json({ 
+                success: false, 
+                message: '备份文件不存在' 
+            });
+        }
+        
+        // 读取备份数据
+        const backupData = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
+        
+        // 保存到主数据文件
+        fs.writeFileSync(DATA_FILE, JSON.stringify(backupData, null, 2));
+        
+        console.log(`数据恢复成功: ${filename}`);
+        
+        res.json({
+            success: true,
+            message: '数据恢复成功',
+            data: {
+                filename: filename,
+                count: backupData.length
+            }
+        });
+        
+    } catch (error) {
+        console.error('恢复备份失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: '恢复备份失败', 
+            details: error.message 
+        });
+    }
+});
+
+// 10. 删除备份（仅管理员）
+app.delete('/api/admin/backups/:filename', authMiddleware, requirePermission('delete_data'), (req, res) => {
+    try {
+        const { filename } = req.params;
+        const backupDir = path.join(__dirname, 'data', 'backups');
+        const backupFile = path.join(backupDir, filename);
+        
+        if (!fs.existsSync(backupFile)) {
+            return res.status(404).json({ 
+                success: false, 
+                message: '备份文件不存在' 
+            });
+        }
+        
+        // 删除备份文件
+        fs.unlinkSync(backupFile);
+        
+        console.log(`备份已删除: ${filename}`);
+        
+        res.json({
+            success: true,
+            message: '备份删除成功'
+        });
+        
+    } catch (error) {
+        console.error('删除备份失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: '删除备份失败', 
+            details: error.message 
+        });
+    }
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
     console.log(`🚀 API服务器已启动: http://localhost:${PORT}`);

@@ -289,6 +289,11 @@
                         <i class="fas fa-list"></i> 登记数据
                     </a>
                 </li>
+                <li>
+                    <a href="#" onclick="showBackups()">
+                        <i class="fas fa-database"></i> 备份管理
+                    </a>
+                </li>
             </ul>
         </div>
         
@@ -324,13 +329,35 @@
             </div>
             
             <!-- 数据表格 -->
-            <div class="data-table">
-                <div style="padding: 20px; border-bottom: 1px solid #ecf0f1;">
-                    <h3 style="margin: 0;">登记数据列表</h3>
+            <div id="requestsContainer" style="display: block;">
+                <div class="data-table">
+                    <div style="padding: 20px; border-bottom: 1px solid #ecf0f1;">
+                        <h3 style="margin: 0;">登记数据列表</h3>
+                    </div>
+                    <div id="tableContainer">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> 加载中...
+                        </div>
+                    </div>
                 </div>
-                <div id="tableContainer">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+            </div>
+            
+            <!-- 备份管理 -->
+            <div id="backupsContainer" style="display: none;">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn-login" onclick="createBackup()" style="width: auto; padding: 10px 20px;">
+                        <i class="fas fa-save"></i> 创建备份
+                    </button>
+                </div>
+                
+                <div class="data-table">
+                    <div style="padding: 20px; border-bottom: 1px solid #ecf0f1;">
+                        <h3 style="margin: 0;">备份列表</h3>
+                    </div>
+                    <div id="backupsTableContainer">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> 加载中...
+                        </div>
                     </div>
                 </div>
             </div>
@@ -534,7 +561,170 @@
         function showRequests() {
             document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
             event.target.closest('a').classList.add('active');
+            document.getElementById('requestsContainer').style.display = 'block';
+            document.getElementById('backupsContainer').style.display = 'none';
             loadRequests();
+        }
+        
+        // 显示备份管理
+        function showBackups() {
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            event.target.closest('a').classList.add('active');
+            document.getElementById('requestsContainer').style.display = 'none';
+            document.getElementById('backupsContainer').style.display = 'block';
+            loadBackups();
+        }
+        
+        // 创建备份
+        async function createBackup() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/backup`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('备份创建成功！');
+                    loadBackups();
+                } else {
+                    alert('备份创建失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('创建备份失败:', error);
+                alert('创建备份失败，请检查网络连接');
+            }
+        }
+        
+        // 加载备份列表
+        async function loadBackups() {
+            const container = document.getElementById('backupsTableContainer');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/backups`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const backups = result.data;
+                    
+                    if (backups.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-database"></i>
+                                <p>暂无备份数据</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    let tableHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>文件名</th>
+                                    <th>大小</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    backups.forEach(backup => {
+                        tableHTML += `
+                            <tr>
+                                <td>${backup.filename}</td>
+                                <td>${(backup.size / 1024).toFixed(2)} KB</td>
+                                <td>${new Date(backup.createdAt).toLocaleString()}</td>
+                                <td>
+                                    <button onclick="restoreBackup('${backup.filename}')" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; margin-right: 5px; cursor: pointer;">
+                                        <i class="fas fa-undo"></i> 恢复
+                                    </button>
+                                    <button onclick="deleteBackup('${backup.filename}')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                                        <i class="fas fa-trash"></i> 删除
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHTML += '</tbody></table>';
+                    container.innerHTML = tableHTML;
+                }
+            } catch (error) {
+                console.error('加载备份列表失败:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>加载备份列表失败，请检查网络连接</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 恢复备份
+        async function restoreBackup(filename) {
+            if (!confirm('确定要恢复此备份吗？这将覆盖当前所有数据！')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/restore`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ filename })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('备份恢复成功！');
+                    loadBackups();
+                } else {
+                    alert('备份恢复失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('恢复备份失败:', error);
+                alert('恢复备份失败，请检查网络连接');
+            }
+        }
+        
+        // 删除备份
+        async function deleteBackup(filename) {
+            if (!confirm('确定要删除此备份吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/backups/${filename}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('备份删除成功！');
+                    loadBackups();
+                } else {
+                    alert('备份删除失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('删除备份失败:', error);
+                alert('删除备份失败，请检查网络连接');
+            }
         }
     </script>
 </body>
