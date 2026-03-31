@@ -432,14 +432,24 @@
             try {
                 // 4. 本地存储模拟数据保存
                 console.log('开始保存表单数据...');
+                console.log('表单数据:', data);
+                
+                // 检查localStorage是否可用
+                if (typeof Storage === 'undefined') {
+                    throw new Error('您的浏览器不支持本地存储');
+                }
                 
                 // 读取现有数据
                 let existingData = [];
                 try {
                     const storedData = localStorage.getItem('formData');
                     console.log('从localStorage读取的数据:', storedData);
-                    if (storedData) {
+                    if (storedData && storedData !== 'undefined' && storedData !== 'null') {
                         existingData = JSON.parse(storedData);
+                        if (!Array.isArray(existingData)) {
+                            console.warn('现有数据不是数组，重置为空数组');
+                            existingData = [];
+                        }
                     }
                 } catch (parseError) {
                     console.warn('解析现有数据失败，使用空数组:', parseError);
@@ -457,7 +467,13 @@
                 existingData.push(newEntry);
                 
                 // 保存数据到本地存储
-                localStorage.setItem('formData', JSON.stringify(existingData));
+                const jsonString = JSON.stringify(existingData);
+                console.log('准备保存的JSON字符串:', jsonString);
+                localStorage.setItem('formData', jsonString);
+                
+                // 验证保存成功
+                const verifyData = localStorage.getItem('formData');
+                console.log('验证保存的数据:', verifyData);
                 
                 console.log('表单数据已保存到本地存储:', newEntry);
                 console.log('当前所有数据:', existingData);
@@ -470,6 +486,7 @@
                 refreshCaptcha();
             } catch (error) {
                 console.error('Submission Error:', error);
+                console.error('错误堆栈:', error.stack);
                 feedback.className = 'form-feedback error';
                 feedback.textContent = '❌ 提交失败：' + error.message + '\n建议直接拨打电话：199-2005-5453';
                 feedback.style.display = 'block';
