@@ -290,6 +290,11 @@
                     </a>
                 </li>
                 <li>
+                    <a href="#" onclick="showFinance()">
+                        <i class="fas fa-money-bill-wave"></i> 财务管理
+                    </a>
+                </li>
+                <li>
                     <a href="#" onclick="showBackups()">
                         <i class="fas fa-database"></i> 备份管理
                     </a>
@@ -361,12 +366,99 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- 财务管理 -->
+            <div id="financeContainer" style="display: none;">
+                <!-- 财务统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>总收入</h3>
+                        <div class="number" id="totalIncome">¥0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>总支出</h3>
+                        <div class="number" id="totalExpense">¥0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>今日收入</h3>
+                        <div class="number" id="todayIncome">¥0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>今日支出</h3>
+                        <div class="number" id="todayExpense">¥0</div>
+                    </div>
+                </div>
+                
+                <!-- 添加交易记录 -->
+                <div class="data-table" style="margin-top: 20px; margin-bottom: 30px;">
+                    <div style="padding: 20px; border-bottom: 1px solid #ecf0f1;">
+                        <h3 style="margin: 0;">添加交易记录</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <form id="transactionForm">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label>交易类型</label>
+                                    <select id="transactionType" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+                                        <option value="income">收入</option>
+                                        <option value="expense">支出</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>支付方式</label>
+                                    <select id="transactionMethod" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+                                        <option value="bank">银行卡</option>
+                                        <option value="wechat">微信支付</option>
+                                        <option value="alipay">支付宝</option>
+                                        <option value="digital">数字人民币</option>
+                                        <option value="creditcard">信用卡</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>金额 (元)</label>
+                                    <input type="number" id="transactionAmount" step="0.01" min="0" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+                                </div>
+                                <div class="form-group">
+                                    <label>交易ID</label>
+                                    <input type="text" id="transactionId" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>描述</label>
+                                    <textarea id="transactionDescription" rows="3" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;"></textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-login" style="width: auto; padding: 12px 24px; margin-top: 20px;">
+                                <i class="fas fa-plus"></i> 添加交易
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- 交易记录列表 -->
+                <div class="data-table">
+                    <div style="padding: 20px; border-bottom: 1px solid #ecf0f1; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0;">交易记录</h3>
+                        <div>
+                            <input type="date" id="financeStartDate" style="padding: 8px; margin-right: 10px;">
+                            <input type="date" id="financeEndDate" style="padding: 8px; margin-right: 10px;">
+                            <button onclick="filterTransactions()" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-filter"></i> 筛选
+                            </button>
+                        </div>
+                    </div>
+                    <div id="transactionsContainer">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> 加载中...
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         // API基础URL
-        const API_BASE_URL = 'http://localhost:3002';
+        const API_BASE_URL = 'http://localhost:3003';
         
         // 当前用户信息
         let currentUser = null;
@@ -572,7 +664,19 @@
             event.target.closest('a').classList.add('active');
             document.getElementById('requestsContainer').style.display = 'none';
             document.getElementById('backupsContainer').style.display = 'block';
+            document.getElementById('financeContainer').style.display = 'none';
             loadBackups();
+        }
+        
+        // 显示财务管理
+        function showFinance() {
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            event.target.closest('a').classList.add('active');
+            document.getElementById('requestsContainer').style.display = 'none';
+            document.getElementById('backupsContainer').style.display = 'none';
+            document.getElementById('financeContainer').style.display = 'block';
+            loadFinanceStats();
+            loadTransactions();
         }
         
         // 创建备份
@@ -726,6 +830,170 @@
                 alert('删除备份失败，请检查网络连接');
             }
         }
+        
+        // 加载财务统计数据
+        async function loadFinanceStats() {
+            try {
+                const response = await fetch('http://localhost:3002/api/finance/stats', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const stats = result.data;
+                    document.getElementById('totalIncome').textContent = '¥' + stats.totalIncome.toFixed(2);
+                    document.getElementById('totalExpense').textContent = '¥' + stats.totalExpense.toFixed(2);
+                    document.getElementById('todayIncome').textContent = '¥' + stats.todayIncome.toFixed(2);
+                    document.getElementById('todayExpense').textContent = '¥' + stats.todayExpense.toFixed(2);
+                }
+            } catch (error) {
+                console.error('加载财务统计失败:', error);
+            }
+        }
+        
+        // 加载交易记录
+        async function loadTransactions(startDate, endDate) {
+            const container = document.getElementById('transactionsContainer');
+            
+            try {
+                let url = 'http://localhost:3002/api/finance/transactions';
+                const params = [];
+                
+                if (startDate) params.push(`startDate=${startDate}`);
+                if (endDate) params.push(`endDate=${endDate}`);
+                
+                if (params.length > 0) {
+                    url += '?' + params.join('&');
+                }
+                
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const transactions = result.data.transactions;
+                    
+                    if (transactions.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <p>暂无交易记录</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    let tableHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>类型</th>
+                                    <th>金额</th>
+                                    <th>支付方式</th>
+                                    <th>描述</th>
+                                    <th>交易ID</th>
+                                    <th>时间</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    transactions.forEach(tx => {
+                        const typeClass = tx.type === 'income' ? 'badge-success' : 'badge-danger';
+                        const typeText = tx.type === 'income' ? '收入' : '支出';
+                        const methodText = {
+                            'bank': '银行卡',
+                            'wechat': '微信支付',
+                            'alipay': '支付宝',
+                            'digital': '数字人民币',
+                            'creditcard': '信用卡'
+                        }[tx.method] || tx.method;
+                        
+                        const statusBadge = tx.isLargeAmount 
+                            ? '<span class="badge badge-warning">大额交易</span>' 
+                            : '<span class="badge badge-info">普通交易</span>';
+                        
+                        tableHTML += `
+                            <tr>
+                                <td>${tx.id}</td>
+                                <td><span class="badge ${typeClass}">${typeText}</span></td>
+                                <td>¥${tx.amount.toFixed(2)}</td>
+                                <td>${methodText}</td>
+                                <td>${tx.description || '-'}</td>
+                                <td>${tx.transactionId || '-'}</td>
+                                <td>${new Date(tx.timestamp).toLocaleString()}</td>
+                                <td>${statusBadge}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHTML += '</tbody></table>';
+                    container.innerHTML = tableHTML;
+                }
+            } catch (error) {
+                console.error('加载交易记录失败:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>加载交易记录失败，请检查网络连接</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 筛选交易记录
+        function filterTransactions() {
+            const startDate = document.getElementById('financeStartDate').value;
+            const endDate = document.getElementById('financeEndDate').value;
+            loadTransactions(startDate, endDate);
+        }
+        
+        // 提交交易记录表单
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const type = document.getElementById('transactionType').value;
+            const method = document.getElementById('transactionMethod').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const transactionId = document.getElementById('transactionId').value;
+            const description = document.getElementById('transactionDescription').value;
+            
+            try {
+                const response = await fetch('http://localhost:3002/api/finance/transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type,
+                        method,
+                        amount,
+                        transactionId,
+                        description
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('交易记录添加成功！');
+                    document.getElementById('transactionForm').reset();
+                    loadFinanceStats();
+                    loadTransactions();
+                } else {
+                    alert('添加交易记录失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('添加交易记录失败:', error);
+                alert('添加交易记录失败，请检查网络连接');
+            }
+        });
     </script>
 </body>
 </html>

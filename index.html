@@ -123,6 +123,113 @@
         .link-info strong { display: block; font-size: 0.95rem; }
         .link-info span { font-size: 0.8rem; color: #999; display: block; margin-top: 2px; }
 
+        /* 综合电商模块 */
+        .ecommerce-section {
+            padding: 60px 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 40px 0;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .ecommerce-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ecommerce-info {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .ecommerce-info h3 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .ecommerce-info p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .ecommerce-info ul {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .ecommerce-info li {
+            padding: 10px 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .ecommerce-info li i {
+            color: #27ae60;
+            margin-right: 10px;
+        }
+
+        .btn-ecommerce {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ecommerce:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .ecommerce-image {
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        .ecommerce-image img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .ecommerce-image img:hover {
+            transform: scale(1.05);
+        }
+
+        .ecommerce-link {
+            position: relative;
+        }
+
+        .ecommerce-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3498db;
+            transition: width 0.3s ease;
+        }
+
+        .ecommerce-link:hover::after {
+            width: 100%;
+        }
+
         /* 页脚 */
         footer { background: #2c3e50; color: #ecf0f1; padding: 60px 20px 20px; margin-top: 80px; }
         .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
@@ -169,6 +276,7 @@
             <nav class="nav-links" id="navLinks">
                 <a href="#home" class="active">首页</a>
                 <a href="#business">核心业务</a>
+                <a href="#ecommerce" class="ecommerce-link">综合电商</a>
                 <a href="#ai-service" class="ai-link">AI 智能</a>
                 <a href="#resources">资源对接</a>
                 <a href="#contact">联系我们</a>
@@ -238,6 +346,32 @@
                         <li><strong>智慧农业：</strong>IOT 监测、大数据</li>
                         <li><strong>工具矩阵：</strong>OpenClaw、IP 查询</li>
                     </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 综合电商模块 -->
+        <div id="ecommerce" class="ecommerce-section reveal">
+            <div class="section-header">
+                <h2 class="section-title">综合电商平台</h2>
+                <div class="title-line"></div>
+            </div>
+            <div class="ecommerce-content">
+                <div class="ecommerce-info">
+                    <h3>茶海虾王综合电商平台</h3>
+                    <p>专注于农产品、新能源产品和智能设备的线上销售，提供一站式购物体验。</p>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> 农产品直销：新鲜小龙虾、优质茶叶</li>
+                        <li><i class="fas fa-check-circle"></i> 新能源产品：充电桩、新能源汽车</li>
+                        <li><i class="fas fa-check-circle"></i> 智能设备：AI 农业监测设备</li>
+                        <li><i class="fas fa-check-circle"></i> 企业采购：批量采购优惠</li>
+                    </ul>
+                    <a href="https://rao5201.github.io/wxchxw/ecommerce.html" class="btn-ecommerce" target="_blank">
+                        <i class="fas fa-shopping-cart"></i> 进入电商平台
+                    </a>
+                </div>
+                <div class="ecommerce-image">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=E-commerce%20platform%20with%20agricultural%20products%20and%20new%20energy%20products%2C%20modern%20design%2C%20clean%20interface&image_size=landscape_16_9" alt="综合电商平台">
                 </div>
             </div>
         </div>
@@ -350,6 +484,10 @@
                         <i class="fas fa-folder-open"></i>
                         <div class="link-info"><strong>自研软件工具合集</strong><span>QwenFlow | CHXW 量化交易 | 安全防护平台</span></div>
                     </a>
+                    <a href="https://rao5201.github.io/wxchxw/financing.html" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-chart-line"></i>
+                        <div class="link-info"><strong>最新项目融资</strong><span>优质项目推荐、融资机会</span></div>
+                    </a>
                 </div>
             </div>
         </div>
@@ -377,6 +515,16 @@
                     <img src="logo.jpeg" alt="茶海虾王 Brand Logo" onerror="this.src='https://via.placeholder.com/200x80.png?text=BRAND+LOGO';">
                 </div>
             </div>
+            <div class="footer-col">
+                <h4>分享网站</h4>
+                <p>扫描二维码分享网站</p>
+                <div id="qrcode-container" style="margin: 10px 0;">
+                    <canvas id="qrcode"></canvas>
+                </div>
+                <button id="share-btn" class="btn-share">
+                    <i class="fas fa-share-alt"></i> 分享网站
+                </button>
+            </div>
         </div>
         <div class="footer-bottom">
             &copy; 2021-2026 武穴茶海虾王电子商务中心 版权所有
@@ -388,6 +536,7 @@
         <a href="#resources">立即咨询</a>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script>
         // 验证码生成逻辑
         let currentCaptcha = '';
@@ -435,7 +584,7 @@
                 console.log('表单数据:', data);
                 
                 // 调用后端API
-                const response = await fetch('http://localhost:3002/api/submit-request', {
+                const response = await fetch('http://localhost:3003/api/submit-request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -533,6 +682,59 @@
                 if (a.getAttribute('href').includes(current)) a.classList.add('active');
             });
         });
+
+        // 二维码生成和分享功能
+        function generateQRCode() {
+            const url = window.location.href;
+            const qrcode = document.getElementById('qrcode');
+            
+            QRCode.toCanvas(qrcode, url, {
+                width: 120,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            }, function (error) {
+                if (error) console.error(error);
+                console.log('QR code generated successfully');
+            });
+        }
+
+        // 分享功能
+        function shareWebsite() {
+            if (navigator.share) {
+                // 使用Web Share API
+                navigator.share({
+                    title: '茶海虾王电子商务中心',
+                    text: '全产业链综合服务平台 - 农产品产销、企业管理、财税融资、供应链服务融合新媒体、新能源、新技术、AI 综合服务',
+                    url: window.location.href
+                })
+                .then(() => console.log('分享成功'))
+                .catch((error) => console.error('分享失败:', error));
+            } else {
+                // 复制链接到剪贴板
+                navigator.clipboard.writeText(window.location.href)
+                .then(() => {
+                    alert('链接已复制到剪贴板，请粘贴分享给朋友！');
+                })
+                .catch(err => {
+                    console.error('复制失败:', err);
+                    alert('请手动复制网址分享：' + window.location.href);
+                });
+            }
+        }
+
+        // 初始化二维码
+        window.addEventListener('load', function() {
+            generateQRCode();
+            
+            // 绑定分享按钮事件
+            const shareBtn = document.getElementById('share-btn');
+            if (shareBtn) {
+                shareBtn.addEventListener('click', shareWebsite);
+            }
+        }
     </script>
 </body>
 </html>

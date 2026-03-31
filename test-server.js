@@ -1,80 +1,253 @@
-const express = require('express');
-const cors = require('cors');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = 3003;
 
-// 存储表单数据的文件
-const DATA_FILE = path.join(__dirname, 'form-data.json');
+// 模拟数据存储
+let formData = [];
+let financeData = [];
 
-// 确保数据文件存在
-if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify([]));
+// 处理请求
+const server = http.createServer((req, res) => {
+    // 设置CORS头
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    // 处理OPTIONS请求
+    if (req.method === 'OPTIONS') {
+        res.statusCode = 204;
+        res.end();
+        return;
+    }
+    
+    // 处理API请求
+    if (req.url.startsWith('/api/')) {
+        handleApiRequest(req, res);
+        return;
+    }
+    
+    // 处理静态文件
+    if (req.url === '/') {
+        req.url = '/index.html';
+    }
+    
+    const filePath = path.join(__dirname, req.url);
+    const extname = path.extname(filePath);
+    
+    let contentType = 'text/html';
+    switch (extname) {
+        case '.js':
+            contentType = 'text/javascript';
+            break;
+        case '.css':
+            contentType = 'text/css';
+            break;
+        case '.json':
+            contentType = 'application/json';
+            break;
+        case '.png':
+            contentType = 'image/png';
+            break;
+        case '.jpg':
+            contentType = 'image/jpg';
+            break;
+    }
+    
+    fs.readFile(filePath, (err, content) => {
+        if (err) {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'text/html');
+            res.end('<h1>404 Not Found</h1>');
+        } else {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', contentType);
+            res.end(content, 'utf-8');
+        }
+    });
+});
+
+// 处理API请求
+function handleApiRequest(req, res) {
+    const url = req.url;
+    const method = req.method;
+    
+    // 解析请求体
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
+    
+    req.on('end', () => {
+        if (url === '/api/submit-request' && method === 'POST') {
+            // 处理表单提交
+            const data = JSON.parse(body);
+            const newEntry = {
+                id: 'req_' + Date.now(),
+                ...data,
+                timestamp: new Date().toISOString(),
+                expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            };
+            formData.push(newEntry);
+            
+            console.log('收到表单提交:', newEntry);
+            
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+                success: true,
+                message: '数据保存成功！',
+                data: newEntry
+            }));
+            
+        } else if (url === '/api/finance/transactions' && method === 'POST') {
+            // 处理财务交易
+            const data = JSON.parse(body);
+            const newTransaction = {
+                id: 'tx_' + Date.now(),
+                ...data,
+                timestamp: new Date().toISOString(),
+                expiryDate: new Date(Date.now() + 10950 * 24 * 60 * 60 * 1000).toISOString(), // 30年
+                isLargeAmount: data.amount >= 50000
+            };
+            financeData.push(newTransaction);
+            
+            console.log('收到交易记录:', newTransaction);
+            
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+                success: true,
+                message: '交易记录创建成功',
+                data: newTransaction
+            }));
+            
+        } else if (url === '/api/finance/stats' && method === 'GET') {
+            // 处理财务统计
+            const stats = {
+                totalIncome: financeData
+                    .filter(tx => tx.type === 'income')
+                    .reduce((sum, tx) => sum + tx.amount, 0),
+                totalExpense: financeData
+                    .filter(tx => tx.type === 'expense')
+                    .reduce((sum, tx) => sum + tx.amount, 0),
+                todayIncome: financeData
+                    .filter(tx => tx.type === 'income' && new Date(tx.timestamp).toDateString() === new Date().toDateString())
+                    .reduce((sum, tx) => sum + tx.amount, 0),
+                todayExpense: financeData
+                    .filter(tx => tx.type === 'expense' && new Date(tx.timestamp).toDateString() === new Date().toDateString())
+                    .reduce((sum, tx) => sum + tx.amount, 0),
+                largeTransactions: financeData.filter(tx => tx.isLargeAmount).length,
+                totalTransactions: financeData.length,
+                dataRetentionDays: 10950
+            };
+            
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+                success: true,
+                data: stats
+            }));
+            
+        } else if (url === '/api/finance/transactions' && method === 'GET') {
+            // 处理交易记录查询
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+                success: true,
+                data: {
+                    transactions: financeData.reverse(),
+                    pagination: {
+                        total: financeData.length,
+                        page: 1,
+                        limit: 20,
+                        pages: Math.ceil(financeData.length / 20)
+                    }
+                }
+            }));
+            
+        } else if (url === '/api/admin/requests' && method === 'GET') {
+            // 处理后台数据查询
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+                success: true,
+                data: formData.reverse(),
+                config: {
+                    userDataRetentionDays: 30,
+                    serviceViewExpiryDays: 60
+                }
+            }));
+            
+        } else if (url === '/api/admin/stats' && method === 'GET') {
+            // 处理后台统计
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+                success: true,
+                data: {
+                    totalRequests: formData.length,
+                    todayRequests: formData.filter(r => new Date(r.timestamp).toDateString() === new Date().toDateString()).length,
+                    pendingRequests: formData.length,
+                    expiredRequests: 0,
+                    dataRetentionDays: 730,
+                    lastCleanup: new Date().toISOString()
+                }
+            }));
+            
+        } else if (url === '/api/admin/login' && method === 'POST') {
+            // 处理登录
+            const { username, password } = JSON.parse(body);
+            
+            if ((username === 'admin' && password === 'admin123') || (username === 'service' && password === 'service123')) {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({
+                    success: true,
+                    message: '登录成功',
+                    data: {
+                        token: 'test-token-' + Date.now(),
+                        user: {
+                            id: username === 'admin' ? 'admin_001' : 'service_001',
+                            username: username,
+                            role: username === 'admin' ? 'admin' : 'service',
+                            permissions: username === 'admin' ? ['view_all', 'delete_data'] : ['view_data']
+                        }
+                    }
+                }));
+            } else {
+                res.statusCode = 401;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({
+                    success: false,
+                    message: '用户名或密码错误'
+                }));
+            }
+            
+        } else {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+                success: false,
+                message: '接口不存在'
+            }));
+        }
+    });
 }
 
-// 处理表单提交
-app.post('/api/requests', (req, res) => {
-    try {
-        const data = req.body;
-        
-        if (!data.name || !data.phone) {
-            return res.status(400).json({ success: false, message: '缺少必要字段 (name 或 phone)' });
-        }
-        
-        // 读取现有数据
-        const existingData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-        
-        // 添加新数据
-        const newEntry = {
-            ...data,
-            timestamp: new Date().toISOString()
-        };
-        existingData.push(newEntry);
-        
-        // 保存数据
-        fs.writeFileSync(DATA_FILE, JSON.stringify(existingData, null, 2));
-        
-        console.log('收到表单数据:', newEntry);
-        console.log('数据已保存到:', DATA_FILE);
-        
-        res.json({
-            success: true,
-            message: '数据保存成功！'
-        });
-    } catch (error) {
-        console.error('表单提交失败:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: '服务器内部错误', 
-            details: error.message 
-        });
-    }
-});
-
-// 获取所有表单数据
-app.get('/api/requests', (req, res) => {
-    try {
-        const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-        res.json({
-            success: true,
-            data: data
-        });
-    } catch (error) {
-        console.error('获取数据失败:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: '服务器内部错误', 
-            details: error.message 
-        });
-    }
-});
-
-const PORT = 3001;
-app.listen(PORT, () => {
-    console.log(`测试服务器已启动: http://localhost:${PORT}`);
-    console.log(`表单提交接口: POST http://localhost:${PORT}/api/requests`);
-    console.log(`数据获取接口: GET http://localhost:${PORT}/api/requests`);
+// 启动服务器
+server.listen(PORT, () => {
+    console.log(`🚀 测试服务器已启动: http://localhost:${PORT}`);
+    console.log(`📄 网站地址: http://localhost:${PORT}`);
+    console.log(`🔐 后台管理: http://localhost:${PORT}/admin.html`);
+    console.log('');
+    console.log('默认账号:');
+    console.log('  管理员: admin / admin123');
+    console.log('  客服: service / service123');
+    console.log('');
+    console.log('测试功能:');
+    console.log('1. 访问网站首页，测试表单提交');
+    console.log('2. 访问后台管理，测试数据查看');
+    console.log('3. 访问财务管理，测试交易记录');
 });
