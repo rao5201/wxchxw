@@ -4,6 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
+const schedule = require('node-schedule');
+const { createObjectCsvWriter } = require('csv-writer');
+const dayjs = require('dayjs');
 
 const app = express();
 app.use(cors());
@@ -54,7 +58,16 @@ if (!fs.existsSync(CONFIG_FILE)) {
         dataRetentionDays: 730, // 2年
         userDataRetentionDays: 30, // 30天
         serviceViewExpiryDays: 60, // 2个月
-        lastCleanup: new Date().toISOString()
+        lastCleanup: new Date().toISOString(),
+        email: {
+            host: 'smtp.126.com',
+            port: 465,
+            secure: true,
+            user: 'rao5201@126.com',
+            pass: 'your-email-password',
+            to: 'rao5201@126.com',
+            subject: '茶海虾王 - 当天登记资料汇总'
+        }
     };
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(defaultConfig, null, 2));
 }
@@ -119,6 +132,132 @@ const cleanupExpiredData = () => {
 
 // 每天清理一次过期数据
 setInterval(cleanupExpiredData, 24 * 60 * 60 * 1000);
+
+// ==================== 邮件发送功能 ====================
+
+// 创建邮件传输器
+function createTransporter() {
+    const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    return nodemailer.createTransporter({
+        host: config.email.host,
+        port: config.email.port,
+        secure: config.email.secure,
+        auth: {
+            user: config.email.user,
+            pass: config.email.pass
+        }
+    });
+}
+
+// 生成当天登记资料的CSV文件
+async function generateDailyReport() {
+    try {
+        const requests = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        const today = dayjs().format('YYYY-MM-DD');
+        const todayRequests = requests.filter(req => {
+            return dayjs(req.timestamp).format('YYYY-MM-DD') === today;
+        });
+        
+        if (todayRequests.length === 0) {
+            console.log('当天没有登记数据，跳过邮件发送');
+            return null;
+        }
+        
+        // 创建CSV文件
+        const csvDir = path.join(__dirname, 'data', 'reports');
+        if (!fs.existsSync(csvDir)) {
+            fs.mkdirSync(csvDir, { recursive: true });
+        }
+        
+        const csvFile = path.join(csvDir, `report_${today}.csv`);
+        
+        const csvWriter = createObjectCsvWriter({
+            path: csvFile,
+            header: [
+                { id: 'id', title: 'ID' },
+                { id: 'type', title: '需求类型' },
+                { id: 'name', title: '联系人' },
+                { id: 'phone', title: '电话' },
+                { id: 'message', title: '需求描述' },
+                { id: 'timestamp', title: '提交时间' },
+                { id: 'expiryDate', title: '过期时间' }
+            ]
+        });
+        
+        await csvWriter.writeRecords(todayRequests);
+        console.log(`生成当天报告成功: ${csvFile}`);
+        
+        return { csvFile, count: todayRequests.length };
+    } catch (error) {
+        console.error('生成报告失败:', error);
+        return null;
+    }
+}
+
+// 发送邮件
+async function sendDailyReport() {
+    try {
+        const report = await generateDailyReport();
+        
+        if (!report) {
+            return;
+        }
+        
+        const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+        const transporter = createTransporter();
+        
+        const today = dayjs().format('YYYY-MM-DD');
+        
+        const mailOptions = {
+            from: config.email.user,
+            to: config.email.to,
+            subject: `${config.email.subject} - ${today}`,
+            text: `您好，
+
+附件是 ${today} 的登记资料汇总，共 ${report.count} 条记录。
+
+请查收。
+
+茶海虾王管理系统`,
+            attachments: [
+                {
+                    filename: `report_${today}.csv`,
+                    path: report.csvFile
+                }
+            ]
+        };
+        
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`邮件发送成功: ${info.messageId}`);
+        
+    } catch (error) {
+        console.error('发送邮件失败:', error);
+    }
+}
+
+// 定时任务：每天23:59发送当天报告
+schedule.scheduleJob('59 23 * * *', () => {
+    console.log('执行每日报告发送任务...');
+    sendDailyReport();
+});
+
+// 测试邮件发送
+app.post('/api/admin/test-email', authMiddleware, requirePermission('delete_data'), async (req, res) => {
+    try {
+        await sendDailyReport();
+        res.json({
+            success: true,
+            message: '测试邮件发送成功'
+        });
+    } catch (error) {
+        console.error('测试邮件发送失败:', error);
+        res.status(500).json({
+            success: false,
+            message: '测试邮件发送失败',
+            details: error.message
+        });
+    }
+});
 
 // ==================== API路由 ====================
 
