@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "name": "teaking-backend",
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ],
+  "env": {
+    "COCKROACHDB_URL": "@cockroachdb_url",
+    "TIDB_HOST": "@tidb_host",
+    "TIDB_PORT": "@tidb_port",
+    "TIDB_USER": "@tidb_user",
+    "TIDB_PASSWORD": "@tidb_password",
+    "TIDB_DATABASE": "@tidb_database",
+    "NEON_URL": "@neon_url",
+    "RAILWAY_URL": "@railway_url",
+    "EMAIL_SERVICE": "@email_service",
+    "EMAIL_USER": "@email_user",
+    "EMAIL_PASSWORD": "@email_password",
+    "JWT_SECRET": "@jwt_secret"
+  }
+}
