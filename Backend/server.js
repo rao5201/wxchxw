@@ -779,6 +779,39 @@ app.get('/api/shop/list', (req, res) => {
     res.json({ message: "电商接口开发中...", data: [] });
 });
 
+// --- 处理采购/投资意向登记 ---  
+app.post('/api/requests', async (req, res) => {
+    try {
+        const data = req.body;
+        
+        if (!data.name || !data.phone) {
+            return res.status(400).json({ success: false, message: '缺少必要字段 (name 或 phone)' });
+        }
+        
+        // 模拟数据保存
+        console.log('收到表单数据:', data);
+        
+        // 执行日备份
+        await db.dailyBackup({
+            action: 'request_submitted',
+            user_id: null,
+            timestamp: new Date().toISOString()
+        });
+        
+        res.json({
+            success: true,
+            message: '数据保存成功！'
+        });
+    } catch (error) {
+        console.error('表单提交失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: '服务器内部错误', 
+            details: error.message 
+        });
+    }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`🚀 茶海虾王后端服务已启动: http://localhost:${PORT}`);

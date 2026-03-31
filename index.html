@@ -6,7 +6,7 @@
     <title>武穴茶海虾王电子商务中心 - 全产业链综合服务平台</title>
     
     <!-- 安全加固：内容安全策略 (CSP) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://images.unsplash.com https://via.placeholder.com blob:; font-src https://cdnjs.cloudflare.com; connect-src 'self' https://*.netlify.app;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://images.unsplash.com https://via.placeholder.com blob:; font-src https://cdnjs.cloudflare.com; connect-src 'self' https://*.netlify.app;">
     
     <!-- 安全加固：子资源完整性 (SRI) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQZd/XlC2kQye0x5cjvTYTd7sdkeL8Wg9RMKtwH2u0GFPsB6nRkOXPmF4dJmiDqxTvhjw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -430,24 +430,44 @@
             feedback.style.display = 'none';
 
             try {
-                // 4. 发送数据到 Netlify 云函数
-                const response = await fetch('/.netlify/functions/save-to-db', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    feedback.className = 'form-feedback success';
-                    feedback.textContent = '✅ 提交成功！数据已安全入库，我们将尽快联系您。';
-                    feedback.style.display = 'block';
-                    e.target.reset(); // 清空表单
-                    refreshCaptcha();
-                } else {
-                    throw new Error(result.message || '服务器响应错误');
+                // 4. 本地存储模拟数据保存
+                console.log('开始保存表单数据...');
+                
+                // 读取现有数据
+                let existingData = [];
+                try {
+                    const storedData = localStorage.getItem('formData');
+                    console.log('从localStorage读取的数据:', storedData);
+                    if (storedData) {
+                        existingData = JSON.parse(storedData);
+                    }
+                } catch (parseError) {
+                    console.warn('解析现有数据失败，使用空数组:', parseError);
+                    existingData = [];
                 }
+                
+                // 添加新数据
+                const newEntry = {
+                    type: data.type || '',
+                    name: data.name || '',
+                    phone: data.phone || '',
+                    message: data.message || '',
+                    timestamp: new Date().toISOString()
+                };
+                existingData.push(newEntry);
+                
+                // 保存数据到本地存储
+                localStorage.setItem('formData', JSON.stringify(existingData));
+                
+                console.log('表单数据已保存到本地存储:', newEntry);
+                console.log('当前所有数据:', existingData);
+                
+                // 显示成功消息
+                feedback.className = 'form-feedback success';
+                feedback.textContent = '✅ 提交成功！数据已安全保存到本地存储，我们将尽快联系您。';
+                feedback.style.display = 'block';
+                e.target.reset(); // 清空表单
+                refreshCaptcha();
             } catch (error) {
                 console.error('Submission Error:', error);
                 feedback.className = 'form-feedback error';

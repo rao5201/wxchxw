@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage 测试</title>
+</head>
+<body>
+    <h1>LocalStorage 测试页面</h1>
+    <button onclick="testLocalStorage()">测试 LocalStorage</button>
+    <div id="result"></div>
+
+    <script>
+        function testLocalStorage() {
+            const resultDiv = document.getElementById('result');
+            try {
+                // 测试写入
+                const testData = {
+                    name: '测试用户',
+                    phone: '13800138000',
+                    timestamp: new Date().toISOString()
+                };
+                
+                // 读取现有数据
+                let existingData = [];
+                try {
+                    const storedData = localStorage.getItem('formData');
+                    console.log('从localStorage读取的数据:', storedData);
+                    if (storedData) {
+                        existingData = JSON.parse(storedData);
+                    }
+                } catch (parseError) {
+                    console.warn('解析现有数据失败，使用空数组:', parseError);
+                    existingData = [];
+                }
+                
+                // 添加新数据
+                existingData.push(testData);
+                
+                // 保存数据
+                localStorage.setItem('formData', JSON.stringify(existingData));
+                
+                // 验证保存成功
+                const verifyData = localStorage.getItem('formData');
+                const parsedData = JSON.parse(verifyData);
+                
+                resultDiv.innerHTML = `
+                    <h2>测试成功！</h2>
+                    <p>数据已成功保存到 LocalStorage</p>
+                    <pre>${JSON.stringify(parsedData, null, 2)}</pre>
+                `;
+                
+                console.log('测试成功，数据:', parsedData);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h2>测试失败！</h2>
+                    <p>错误信息: ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+                console.error('测试失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>
