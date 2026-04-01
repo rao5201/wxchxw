@@ -834,7 +834,7 @@
         // 加载财务统计数据
         async function loadFinanceStats() {
             try {
-                const response = await fetch('http://localhost:3002/api/finance/stats', {
+                const response = await fetch('http://localhost:3003/api/finance/stats', {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 
@@ -857,7 +857,7 @@
             const container = document.getElementById('transactionsContainer');
             
             try {
-                let url = 'http://localhost:3002/api/finance/transactions';
+                let url = 'http://localhost:3003/api/finance/transactions';
                 const params = [];
                 
                 if (startDate) params.push(`startDate=${startDate}`);
@@ -957,6 +957,12 @@
         document.getElementById('transactionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // 检查权限：只有管理员可以添加交易
+            if (!currentUser || currentUser.role !== 'admin') {
+                alert('权限不足：只有管理员可以添加交易记录');
+                return;
+            }
+            
             const type = document.getElementById('transactionType').value;
             const method = document.getElementById('transactionMethod').value;
             const amount = parseFloat(document.getElementById('transactionAmount').value);
@@ -964,7 +970,7 @@
             const description = document.getElementById('transactionDescription').value;
             
             try {
-                const response = await fetch('http://localhost:3002/api/finance/transactions', {
+                const response = await fetch('http://localhost:3003/api/finance/transactions', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
