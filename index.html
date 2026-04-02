@@ -366,12 +366,12 @@
                         <li><i class="fas fa-check-circle"></i> 智能设备：AI 农业监测设备</li>
                         <li><i class="fas fa-check-circle"></i> 企业采购：批量采购优惠</li>
                     </ul>
-                    <a href="https://rao5201.github.io/wxchxw/ecommerce.html" class="btn-ecommerce" target="_blank">
+                    <a href="ecommerce.html" class="btn-ecommerce">
                         <i class="fas fa-shopping-cart"></i> 进入电商平台
                     </a>
                 </div>
                 <div class="ecommerce-image">
-                    <img src="https://via.placeholder.com/800x450.png?text=综合电商平台" alt="综合电商平台">
+                    <img src="images/base.jpg" alt="综合电商平台" onerror="this.src='https://via.placeholder.com/800x450.png?text=综合电商平台'">
                 </div>
             </div>
         </div>
@@ -484,7 +484,7 @@
                         <i class="fas fa-folder-open"></i>
                         <div class="link-info"><strong>自研软件工具合集</strong><span>QwenFlow | CHXW 量化交易 | 安全防护平台</span></div>
                     </a>
-                    <a href="https://rao5201.github.io/wxchxw/financing.html" target="_blank" rel="noopener noreferrer">
+                    <a href="financing.html" target="_blank" rel="noopener noreferrer">
                         <i class="fas fa-chart-line"></i>
                         <div class="link-info"><strong>最新项目融资</strong><span>优质项目推荐、融资机会</span></div>
                     </a>
@@ -584,7 +584,7 @@
                 console.log('表单数据:', data);
                 
                 // 调用后端API
-                const response = await fetch('http://localhost:3003/api/submit-request', {
+                const response = await fetch('/.netlify/functions/save-to-db', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
