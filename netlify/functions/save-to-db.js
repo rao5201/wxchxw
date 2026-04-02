@@ -1,10 +1,22 @@
 // netlify/functions/save-to-db.js
 const mysql = require('mysql2/promise');
 
+const headers = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 exports.handler = async (event, context) => {
+  // 处理 CORS 预检请求
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers, body: '' };
+  }
+
   // 仅允许 POST 请求
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
   try {
@@ -12,9 +24,10 @@ exports.handler = async (event, context) => {
     const data = JSON.parse(event.body);
     
     if (!data.name || !data.phone) {
-      return { 
-        statusCode: 400, 
-        body: JSON.stringify({ error: '缺少必要字段 (name 或 phone)' }) 
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: '缺少必要字段 (name 或 phone)' })
       };
     }
 
@@ -33,9 +46,10 @@ exports.handler = async (event, context) => {
     // 检查环境变量
     if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database) {
       console.error('Missing database environment variables');
-      return { 
-        statusCode: 500, 
-        body: JSON.stringify({ error: '服务器配置错误：缺少数据库环境变量' }) 
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: '服务器配置错误：缺少数据库环境变量' })
       };
     }
 
@@ -46,6 +60,7 @@ exports.handler = async (event, context) => {
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS requests (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        type VARCHAR(100),
         name VARCHAR(255) NOT NULL,
         phone VARCHAR(50) NOT NULL,
         message TEXT,
@@ -58,14 +73,15 @@ exports.handler = async (event, context) => {
 
     // 4. 插入数据
     const insertSQL = `
-      INSERT INTO requests (name, phone, message, created_at) 
-      VALUES (?, ?, ?, NOW())
+      INSERT INTO requests (type, name, phone, message, created_at)
+      VALUES (?, ?, ?, ?, NOW())
     `;
-    
+
     const values = [
-      data.name, 
-      data.phone, 
-      data.message || '', 
+      data.type || '',
+      data.name,
+      data.phone,
+      data.message || '',
     ];
 
     await connection.execute(insertSQL, values);
@@ -74,13 +90,10 @@ exports.handler = async (event, context) => {
     // 5. 返回成功
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ 
-        success: true, 
-        message: '数据保存成功！(表已自动创建)' 
+      headers,
+      body: JSON.stringify({
+        success: true,
+        message: '数据保存成功！'
       })
     };
 
@@ -88,9 +101,9 @@ exports.handler = async (event, context) => {
     console.error('Database error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
-        error: '服务器内部错误', 
-        details: error.message 
+      headers,
+      body: JSON.stringify({
+        error: '服务器内部错误'
       })
     };
   }
